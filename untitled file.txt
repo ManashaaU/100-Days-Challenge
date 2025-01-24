@@ -1,0 +1,280 @@
+
+! Microsoft Corporation
+! --------------------------------------------------------------------------------------------------------------------------------------------
+! Generic configuration templates
+!
+!	IMPORTANT: This template is for Allied Telesis AR Series VPN Routers running on Firmware Version 5.4.7 or higher.
+!
+! This configuration template shows all the VPN configuration parameters associated with your S2S VPN connection.
+! The script you need to copy onto your Allied Telesis AR Series VPN Router (5.4.7+) to setup a RouteBased IKEv2 VPN Tunnel to Azure with VTI Support (no BGP) is found below [#10]:
+! --------------------------------------------------------------------------------------------------------------------------------------------
+
+
+! [1] Resource names
+!     CONNECTION NAME			: This field is the name of your connection resource
+!     VIRTUAL NETWORK GATEWAY	: The name of your Azure VPN gateway resource for the connection
+!     LOCAL NETWORK GATEWAY		: The name of your local network gateway resource for the connection
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/Data/CONNECTION_NAME = p2s
+/Data/VNG_NAME        = cfe20077-c2f8-4e3e-98e4-d21cdccc12ec
+/Data/LNG_NAME        = Localnettest
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! [2] Public IP address of the Azure VPN gateway
+!     Active-Standby VPN gateway (single public IP address)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/Data/VNG_GATEWAYIP   = 172.174.233.55
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     Active-Active VPN gateway (A/A mode if more than one public IP is listed below)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+/Data/VNG_GATEWAYIPS/IpAddress/IP = 172.174.233.55
+/Data/VNG_GATEWAYIPS/IpAddress/IP = 172.208.66.51
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! [3] Public IP address of the on-premises VPN device
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/Data/LNG_GATEWAYIP   = 194.34.0.1
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! [4] VNet address prefixes: a list of all VNet address prefixes in different formats
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+/Data/VnetSubnets/Subnet/SP_NetworkIpRange = 10.0.0.0
+  SP_NetworkSubnetMask   = 255.255.0.0
+  SP_NetworkWildcardBits = 0.0.255.255
+  SP_NetworkCIDR         = 10.0.0.0/16
+  SP_TunnelName          = SP_TunnelName
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! [5] On-premises address prefixes: a list of all on-premises address prefixes defined in LNG
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! [6] Phase 1/Main Mode:
+!     IKE encryption algorithm
+!     IKE hashing algorithm
+!     IKE Diffie-Hellman group
+!     IKE SA lifetime (seconds)
+!     IKE SA data size (Kilobytes)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/Data/IKE_ENCRYPTION_1 = aes256
+/Data/IKE_INTEGRITY_1  = sha1
+/Data/IKE_DHGROUP_1    = 2
+/Data/IKE_SALIFETIME_1 = 28800
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! [7] Phase 2/Quick Mode:
+!     IPsec encryption algorithm
+!     IPsec hashing algorithm
+!     PFS Group (Perfect Forward Secrecy)
+!     IPsec SA (QMSA) lifetime (seconds)
+!     IPsec SA (QMSA) lifetime (kilobytes)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/Data/IPsec_ENCRYPTION_1 	= aes256
+/Data/IPsec_INTEGRITY_1  	= sha1
+/Data/IPsec_PFSGROUP_1   	= None
+/Data/IPsec_SALIFETIME   	= 3600
+/Data/IPsec_KB_SALIFETIME   = 102400000
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! [8] Connection pre-shared key
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/Data/CONNECTION_PSK = Manashaa3009
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! [9] BGP parameters - Azure VPN gateway
+!     Enable BGP
+!     BGP ASN for Azure VPN gateway
+!     BGP speaker IP address for the Azure VPN gateway
+!     BGP peer IP address(es)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/Data/CONNECTION_BGP_ENABLED  = False
+/Data/VNG_ASN                 = VNG_ASN
+/Data/VNG_BGPIP               = VNG_BGPIP
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! [10] BGP parameters - on-premises network / LNG
+!      BGP ASN for the on-premises network
+!      BGP speaker IP address for the on-premises network
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/Data/LNG_ASN                = LNG_ASN
+/Data/LNG_BGPIP              = LNG_BGPIP
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+
+! ########################################################################################################
+! !!! Search for "REPLACE" to find the values that require special considerations
+! ########################################################################################################
+! ON-PREMISES ENVIRONMENT:
+!
+! -	AR-Series WAN/Public Interface: 
+!	INTERFACE:		ETH1
+!	ZONE:			VPN
+!	IP:				VPN PUBLIC IP
+!	ISP Default GW:	x.x.x.1
+!
+! -	A.T ONPREMISES/LOCAL ENVIRONMENT:
+!	INTERFACE:				VLAN1
+!	ZONE:					PRIVATE
+!	On-Premises Addr Range: ON-PREMISES ADDRESS RANGE (ex. 192.168.1.0/24)
+!	A.T MGMT/LAN Interface:	192.168.1.254
+!
+! -	AR-Series VPN BLADE:
+!	TUNNEL VTI IP:			ex. 192.168.2.222/32
+!	TUNNEL INTERFACE:		tunnel0
+!	ISAKMP PROFILE:			AZURE-ISAKMP
+!	IPSEC PROFILE:			AZURE-IPSEC
+!	ISAKMP PEER:			AZURE GW PUBLIC IP
+!
+! AZURE VNET ENVIRONMENT:
+!
+! - AZURE VIRTUAL NETWORK:
+! -  ADDRESS RANGE:			AZURE ADDRESS RANGE (ex. 10.10.0.0/16)
+! -  AZURE GATEWAY IP:		AZURE GATEWAY PUBLIC IP
+
+! ============================================================================================
+! Example - Allied Telesis AR Series VPN Router (5.4.7+) in Active/Passive Azure GW Mode, with VTI Support (No BGP Router)
+! ============================================================================================
+
+! FOLLOW THESE STEPS TO CREATE YOUR IKEv2 TUNNEL TO AZURE:
+
+!	CREATE YOUR PRIVATE ZONE, CONTAINING YOUR ON-PREMISES/LAN NETWORK 
+!	Note: REPLACE "vlan1" and "192.168.1.254" as needed. They are used here as examples for your LAN network and LAN Host/Management IP. 
+
+zone PRIVATE
+ network LAN
+  ip subnet  interface vlan1
+  host LAN_IP
+   ip address 192.168.1.254
+!
+
+!	Note: REPLACE "eth1" as needed. It is used here as your WAN interface.
+zone PUBLIC
+ network WAN
+  ip subnet 0.0.0.0/0 interface eth1
+  host WAN_IP
+   ip address 172.174.233.55
+!
+
+!	Note: REPLACE "tunnel0" as needed. It is used here to denote your VTI tunnel interface.
+zone VPN
+ network AZURE
+  ip subnet 10.0.0.0/16 interface tunnel0
+!
+
+application esp
+ protocol 50
+!
+application icmp
+ protocol icmp
+!
+application isakmp
+ protocol udp
+ sport 500
+ dport 500
+!
+! Below shows you how to enable the Web-Control Feature Function, in case you have a valid feature license key (commented out) 
+!web-control
+! action permit
+! provider digitalarts
+!
+
+! THESE ARE YOUR REQUIRED FIREWALL RULES FOR YOUR AZURE CONNECTION 
+
+firewall
+ rule 10 permit isakmp from PUBLIC.WAN.WAN_IP to PUBLIC.WAN
+ rule 20 permit isakmp from PUBLIC.WAN to PUBLIC.WAN.WAN_IP
+ rule 30 permit esp from PUBLIC.WAN.WAN_IP to PUBLIC.WAN
+ rule 40 permit esp from PUBLIC.WAN to PUBLIC.WAN.WAN_IP
+ rule 45 permit ping from PRIVATE to PRIVATE
+ rule 50 permit ping from VPN.AZURE to PRIVATE.LAN
+ rule 60 permit ping from PRIVATE.LAN to VPN.AZURE
+ rule 70 permit ping from PUBLIC.WAN to PRIVATE.LAN
+ rule 75 permit ping from PRIVATE to PUBLIC
+ rule 80 permit any from PRIVATE.LAN to VPN.AZURE
+ rule 90 permit any from VPN.AZURE to PRIVATE.LAN
+ protect
+!
+
+! NAT RULE
+nat
+ rule 10 masq any from PRIVATE to PUBLIC
+ enable
+!
+
+! AZURE IPSEC PROFILE
+crypto ipsec profile AZURE-IPSEC-p2s
+ lifetime seconds 3600
+ transform 1 protocol esp integrity SHA1 encryption AES256
+!
+
+! AZURE ISAKMP/IKEv2 PHASE 1 PROFILE
+crypto isakmp profile AZURE-IPSEC-p2s
+!
+crypto isakmp profile AZURE-ISAKMP-p2s
+ version 2
+ lifetime 28800
+ transform 1 integrity SHA1 encryption AES256 group 2
+!
+
+! AZURE ISAKMP PRE-SHARED KEY
+crypto isakmp key 8 Manashaa3009 address 172.174.233.55
+!
+
+! AZURE ISAKMP PEER (AZURE GATEWAY)
+crypto isakmp peer address 172.174.233.55 profile AZURE-ISAKMP-p2s
+!
+
+! MAKE SURE YOU HAVE CONFIGURED VPN WAN INTERFACE WITH A PUBLIC IP ADDRESS. BELOW IS AN EXAMPLE
+!	Note: REPLACE "eth1" if already used.
+!	Note: REPLACE subnet prefix "/24" below by the correct prefix (offered by your ISP) for your public IP block if it's different.
+
+interface eth1
+ description external wan
+ ip address 194.34.0.1/24
+ 
+! MAKE SURE YOU HAVE CONFIGURED YOUR VPN MANAGEMENT/LAN INTERFACE, FOR YOUR ONPREMISES NETWORK. BELOW IS AN EXAMPLE 
+!	Note: REPLACE "vlan1" if already used 
+!	IMPORTANT:
+!				Ensure that the management interface for your onPremises network, that is used by your AR-Series LAN, is listed below !
+!				REPLACE "192.168.1.254" as needed (Azure does not have visibility over your MGMT IP).
+!				In this example, my management IP is 192.168.1.254, for my onPremises LAN network 192.168.1.0/24.
+
+interface vlan1
+ description Internal LAN
+ ip address 192.168.1.254/24
+
+ 
+! CREATE YOUR VTI INTERFACE FOR THE ROUTEBASED TUNNEL TO AZURE:
+!	REPLACE "Tunnel0" to something else, if already used.
+ !	   IMPORTANT: Ensure that the local network address space for your onPremises network, that is used by your AR-Series LAN interface, is listed under "tunnel local selector" !
+ !	      --> It is essential to list this one first in the Azure Portal, under your Local Network Gateway --> Configuration-->"Address Space" blade.
+ !	      --> Following this, you must also define your VTI interface next (/32), as a second entry under the same Azure blade mentioned above. 
+ !		      (LNG --> Configuration--> "Address Space")
+
+ ! IMPORTANT NOTES: 
+ !	> Your VTI Interface IP below (192.168.2.222/32) is an example. REPLACE '192.168.2.222/32' with a different /32 host IP, it if this range is already used by another interface.
+ ! 	> As explained above, make sure that you have also added this IP to the "LOCAL NETWORK GATEWAY" object in the Azure Portal, following your actual LAN segment. When doing so, please 
+ !	  add a /32 subnet mask to it, and ensure that this IP doesn't overlap with your on-premises address range(s).
+
+interface Tunnel10
+	ip address 192.168.2.222/32
+	ip tcp adjust-mss 1350
+	tunnel source 194.34.0.1
+	tunnel destination 172.174.233.55
+	tunnel local selector 1 
+	tunnel remote selector 1 10.0.0.0/16
+	tunnel protection ipsec profile AZURE-IPSEC-PROFILE-p2s
+	tunnel mode ipsec ipv4
+!
+
+
+! CREATE YOUR STATIC ROUTES
+!	Note: The 0/0 route needs to have your ISP Default GW as your Next-Hop.
+!		  REPLACE "x.x.x.1" by your assigned ISP Default GW IP.
+
+ip route 0.0.0.0/0 x.x.x.1 eth1
+ip route 10.0.0.0/16 tunnel0
+!
+line con 0
+line vty 0 4
+!
+end
+!--------------------------------------------------END-------------------------------------------------------!
+
