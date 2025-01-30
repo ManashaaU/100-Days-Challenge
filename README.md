@@ -1,2 +1,4 @@
 # 100-Days-Challenge
-description about the tasks i did for the 100 days challenge 
+hello!
+i am currently doing this 100-days challenge where i complete tasks everyday based on cloud 
+
